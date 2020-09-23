@@ -1,0 +1,24 @@
+1 Bachelor Game Programming
+
+Programming Language Course
+
+22 sept. 2020
+
+Please deliver on \\srv-profs\Partage_Profs\body.e\Depots, in a folder named after your
+last name :
+⦁ a folder named roulette, containing a file named roulette.c
+This file should be compilable with the command make roulette. (you can test it on repl.it)
+Expected features :
+⦁ Placing a bet on a number between 0 and 36 included
+⦁ Placing a bet on even or odd numbers
+⦁ Generating a number between 0 and 36 included
+⦁ Losing the money you bet if that doestn't matchs
+⦁ Multiplicating your bet by 2 ou 37 if that maches, depending of the type of the bet
+⦁ Playing another round or quitting the game
+⦁ Not being able to bet money you don't have
+⦁ Not being able to bet on unothorized values
+Coding style :
+⦁ Variable declarations happen on the start of the functison
+⦁ Use comments to indicate anything that isn't obvious
+⦁ Use proper indentation
+⦁ Use spaces around operators
