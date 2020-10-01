@@ -11,7 +11,7 @@ int ask_to_bet(int money);
 void make_deck();
 void wait(int time);
 void print_card(int card_id);
-void start_round(int *player_cards, int pl_len, int *dealer_cards, int de_len);
+void start_deal(int *pl_nb, int *dl_nb);
 
 struct Card
 {	
@@ -32,24 +32,23 @@ struct Card
 };
 /* make a deck of 52 cards. */
 struct Card deck[52];
-
+struct Card player_cards[15];
+struct Card dealer_cards[15];
 
 
 int main(int ac, char **av)
 {
+	int player_money = 100;
+	int quit_game = 0;
+	int player_bet = 0;
+	int pl_cards_nb = 0; /*number of cards the player have*/
+	int dl_cards_nb = 0; /*number of cards the dealer have*/
+
 	system("clear");
 	printf("\n\nHello, welcome to BlackJack :)\n\n");
 	printf("If you dont know the rules, you can check them here\n");
 	printf("en.wikipedia.org/wiki/Blackjack\n\n");
-	
-	
-	int player_money = 100;
-	int quit_game = 0;
-	int player_bet = 0;
 
-	int player_cards[3];
-	int dealer_cards[3];
-	
 	while (quit_game == 0)
 	{		
 		/* BET */
@@ -57,9 +56,10 @@ int main(int ac, char **av)
 
 		
 		/* GAME  */
+		printf("\nThe round start.\n");
 		make_deck();
 		
-		start_round(player_cards, sizeof(player_cards) / sizeof(player_cards[0]), dealer_cards, sizeof(dealer_cards) / sizeof(dealer_cards[0]));
+		start_deal(&pl_cards_nb, &dl_cards_nb);
 
 
 		/* END */
@@ -71,18 +71,16 @@ int main(int ac, char **av)
 	return 0;
 }
 
-void start_round(int *player_cards, int pl_len, int *dealer_cards, int de_len)
+void start_deal(int *pl_nb, int *dl_nb)
 {
 
-	printf("\nThe round start.\n");
 	printf("Dealing...\n");
 
 	wait(1);
 	
 	/*HERE*/
-	player_cards = prices;
+	*nb = 10;
 
-	printf("%d\n", pl_len);
 }
 
 void print_card(int card_id)
