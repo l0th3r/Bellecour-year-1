@@ -32,21 +32,27 @@ struct Card
 struct Card deck[52];
 struct Card player_hand[15];
 struct Card dealer_hand[15];
-struct Card extra_hand[15];
 
 int get_random(int end);
 int ask_continue();
 int ask_to_bet(int money);
 int check_split();
-int get_dealer_hand(int *len);
-int get_player_hand(int *len);
+int play_round(int *no_finish, int *pl_bet, int *pl_money, int *pl_nb, int round_count);
 
-void draw_card(struct Card *target, int *target_pos, int is_hidden);
+void check_score(int *pl_money, int *no_finsh, int *bet, int pl_score, int dl_score, int *quit_round);
+void print_money(int money);
+void print_bet(int bet);
+void draw_card(struct Card *target, int *target_len, int is_hidden);
+void face_up(struct Card *target, int *target_len);
 void make_deck();
+void clear_hands();
 void wait(int time);
 void print_card(int card_id);
 void start_deal(int *pl_nb, int *dl_nb);
-void play_round(int *pl_nb, int round_count);
+void get_dealer_hand(int *len, int *dl_score);
+void get_player_hand(int *len, int *pl_score);
+void handle_pl_win(int score);
+void handle_pl_lose(int score);
 
 int main(int ac, char **av)
 {
@@ -55,6 +61,7 @@ int main(int ac, char **av)
 	int player_bet = 0;
 	int quit_round = 0;
 	int round_count = 0;
+	int no_finish = 0;
 
 	int pl_hand_nb = 0; /*number of cards the player have*/
 	int dl_hand_nb = 0; /*number of cards the dealer have*/
@@ -67,32 +74,66 @@ int main(int ac, char **av)
 
 	while (quit_game == 0)
 	{		
+		printf("\nThe round start.\n");
 		/* BET */
 		player_bet = ask_to_bet(player_money);
-
+		player_money -= player_bet;
 		
 		/* GAME  */
 		printf("\n____________________________\n");
 		printf("\nThe round start.\n");
-		
+
+		clear_hands();
 		make_deck();
 		
 		start_deal(&pl_hand_nb, &dl_hand_nb);
 
-		get_dealer_hand(&dl_hand_nb);
-		get_player_hand(&pl_hand_nb);
 
 		while (quit_round == 0)
 		{
-			play_round(&pl_hand_nb, round_count);
-			round_count++;
-			quit_round = 1;
+			/* clear standard outpout */
+			system("clear");
+			
+			print_bet(player_bet);	
+			printf("Round number %d\n", round_count + 1);
+			
+			/* Display all cards */
+			get_dealer_hand(&dl_hand_nb, &dealer_score);
+			get_player_hand(&pl_hand_nb, &player_score);
+			
+			check_score(&player_money, &no_finish, &player_bet, player_score, dealer_score, &quit_round);			
+
+			if (quit_round == 0) 
+			{
+				quit_round = play_round(&no_finish, &player_bet, &player_money, &pl_hand_nb, round_count);
+				round_count++;				
+			}
+
+			if(quit_round == 1 && no_finish == 0)
+			{
+				printf("Dealer turn...\n");
+				
+				face_up(dealer_hand, &dl_hand_nb);
+				while(dealer_score < 17)
+				{
+					system("clear");
+					print_bet(player_bet);	
+
+					draw_card(dealer_hand, &dl_hand_nb, 0);
+					get_dealer_hand(&dl_hand_nb, &dealer_score);
+					get_player_hand(&pl_hand_nb, &player_score);
+				}
+
+				
+				check_score(&player_money, &no_finish, &player_bet, player_score, dealer_score, &quit_round);			
+			}
 		}
 
+		
+		print_money(player_money);
+		printf("The round is over.\n");
 		/* END */
-		/* quit_game = ask_continue();
-		system("clear");*/
-		quit_game = 1;
+		quit_game = ask_continue();
 	}
 
 	return 0;
@@ -109,60 +150,146 @@ void start_deal(int *pl_nb, int *dl_nb)
 	draw_card(dealer_hand, dl_nb, 1);
 }
 
-void play_round(int *pl_nb, int round_count)
+int play_round(int *no_finish, int *pl_bet, int *pl_money, int *pl_nb, int round_count)
 {
 	int good_to_use = 0;
-	char player_choice[7];
+	int to_return = 0;
+	char player_choice[10];
 	int is_split_possible = check_split();
 
 	printf("____________________________\n\n");
 	printf("- hit\n");
-	printf("- double\n");
 	printf("- stand\n");
-	if (is_split_possible == 1) printf("- split\n");
+	/* printf("- double\n"); */
+	/* if (is_split_possible == 1) printf("- split\n"); */
+	if (round_count == 0) printf("- surrend\n");
 	
 	printf("\n");
 	while(good_to_use == 0)
 	{
 		printf("Make your decision : ");
 		scanf("%s", player_choice);
+		
 		if (is_split_possible == 1)
 		{
 			if (strcmp(player_choice, "split") == 0)
 			{
 				/* SPLIT */
-				good_to_use = 1;
 			}
 		}
-		if (strcmp(player_choice, "hit") == 0)
+		if (round_count == 0)
 		{
-			/* HIT */
+			if (strcmp(player_choice, "surrend") == 0)
+			{
+				*pl_money += *pl_bet / 2;
+				*no_finish = 1;
+				to_return = 1;
+				good_to_use = 1;
+				printf("\nYou cashed in half your bet.");
+			}
+		}
+		if(strcmp(player_choice, "hit") == 0)
+		{
+			draw_card(player_hand, pl_nb, 0);	
 			good_to_use = 1;
 		}
-		else if (strcmp(player_choice, "double") == 0)
+		if (strcmp(player_choice, "double") == 0)
 		{
 			/* DOUBLE */
-			good_to_use = 1;
 		}
-		else if (strcmp(player_choice, "stand") == 0)
+		if (strcmp(player_choice, "stand") == 0)
 		{
-			/* STAND */
+			to_return = 1;
 			good_to_use = 1;
 		}
-		else printf("\nThat is not possible...\n");
+		if (good_to_use == 0) printf("\nThat is not possible...\n");
+		return to_return;
 	}
+}
+
+void check_score(int *pl_money, int *no_finsh, int *bet, int pl_score, int dl_score, int *quit_round)
+{
+	int pl_lose = 0;
+	int dl_lose = 0;
+
+	if (pl_score == 21)
+	{
+		handle_pl_win(pl_score);
+		*pl_money += *bet * 2;
+		dl_lose = 1;		
+	}
+	else if (dl_score == 21)
+	{
+		handle_pl_lose(pl_score);
+		pl_lose = 1;	
+	}
+
+	else if (pl_score > 21)
+	{
+		handle_pl_lose(pl_score);
+		pl_lose = 1;
+	}
+	else if (dl_score > 21)
+	{
+		handle_pl_win(pl_score);
+		*pl_money += *bet * 2;
+		dl_lose = 1;
+	}
+
+	if (*quit_round == 1 && pl_lose == 0 && dl_lose == 0)
+	{
+		if (pl_score > dl_score)
+		{
+			handle_pl_win(pl_score);
+			*pl_money += *bet * 2;
+			dl_lose = 1;
+		}
+		else if (dl_score > pl_score)
+		{
+			handle_pl_lose(pl_score);
+			pl_lose = 1;
+		}
+		else
+		{
+			*pl_money += *bet * 2;
+			handle_pl_win(pl_score);
+		}
+	}
+
+	if (pl_lose == 1 || dl_lose == 1) *quit_round = 1;
+}
+
+void handle_pl_lose(int score)
+{
+	printf("\nYou lost! with: %d\n", score);
+}
+
+void handle_pl_win(int score)
+{
+	printf("\nYou win! with: %d\n", score);
 }
 
 int check_split()
 {
 	int to_return = 0;
 
-	/* check if the first and the second card have the same value */
-	if(player_hand[0].value == player_hand[1].value) to_return = 1;
+	/* check if the first and the second card are the same */
+	if(player_hand[0].position == player_hand[1].position) to_return = 1;
 
 	return to_return; 
 }
 
+void face_up(struct Card *target, int *target_len)
+{
+	int i = 0;
+
+	while (i < *target_len)
+	{
+		target[i].hidden = 0;
+		deck[target[i].id].hidden = 0;
+		i++;
+	}
+}
 
 /* get the hand to target, and the number of cards the hand have
  * the function add another card to the targetted hand */
@@ -293,14 +420,14 @@ int get_random(int end)
 }
 
 /* count cards, score and print them, return the total of the dealer */
-int get_dealer_hand(int *len)
+void get_dealer_hand(int *len, int *dl_score)
 {
 	int i = 0;
 	int j = 0;
 	int total = 0;
 	int as_count = 0;
 
-	printf("\nDealer's hand, %d cards :\n\n", *len);
+	printf("\nDealer's hand, %d cards:\n\n", *len);
 	while (i < *len)
 	{
 		print_card(dealer_hand[i].id);
@@ -323,18 +450,18 @@ int get_dealer_hand(int *len)
 
 	printf("\n\ntotal: %d", total);
 	printf("\n\n");
-	return total;
+	*dl_score = total;
 }
 
 /* same as get_dealer_hand but for the player */
-int get_player_hand(int *len)
+void get_player_hand(int *len, int *pl_score)
 {
 	int i = 0;
 	int j = 0;
 	int total = 0;
 	int as_count = 0;
 
-	printf("\nYour hand, %d cards :\n\n", *len);
+	printf("\nYour hand, %d cards:\n\n", *len);
 	while(i < *len)
 	{
 		print_card(player_hand[i].id);
@@ -355,7 +482,7 @@ int get_player_hand(int *len)
 
 	printf("\n\ntotal: %d", total);
 	printf("\n\n");
-	return total;
+	*pl_score = total;
 }
 
 void wait(int time)
@@ -370,9 +497,8 @@ int ask_to_bet(int money)
 	int had_bet = 0;
 	int bet = 0;
 
-	printf("\nYou currently have %d$\n", money);
 	printf("Place your bets: ");
-
+	print_money(money);
 	do
 	{
 		scanf("%d", &bet);
@@ -383,9 +509,19 @@ int ask_to_bet(int money)
 		}
 	}
 	while (had_bet == 0);
-	
-	printf("\nYou have betted %d$\n", bet);
+
+	print_bet(bet);
 	return bet;
+}
+
+void print_money(int money)
+{
+	printf("\nYou currently have %d$\n", money);
+}
+
+void print_bet(int bet)
+{
+	printf("\nYou have betted %d$\n", bet);
 }
 
 int ask_continue()
@@ -402,4 +538,41 @@ int ask_continue()
 		else printf("\nThat is not possible, try again :\n");
 	}
 	return awnser;
+}
+
+void clear_hands()
+{
+	int i = 0;
+
+	while (i < 15)
+	{
+		dealer_hand[i].id = 0;
+		dealer_hand[i].value = 0;
+		dealer_hand[i].suit = 0;
+		dealer_hand[i].position = 0;
+		dealer_hand[i].used = 0;
+		dealer_hand[i].hidden = 0;
+		i++;
+	}
+
+	i = 0;
+
+	while (i < 15)
+	{
+		player_hand[i].id = 0;
+		player_hand[i].value = 0;
+		player_hand[i].suit = 0;
+		player_hand[i].position = 0;
+		player_hand[i].used = 0;
+		player_hand[i].hidden = 0;
+		i++;
+	}
+
+	i = 0;
+
+	while (i < 52) 
+	{
+		deck[i].hidden = 0;
+		i++;
+	}
 }
