@@ -12,6 +12,15 @@ int uf_atoi(char *str)
 	return to_return;
 }
 
+int uf_ctoi(char c)
+{
+	int to_return;
+
+	to_return = c - '0';
+
+	return to_return;
+}
+
 void uf_split_atoi(int *target, char *str, int len)
 {
 	int i = 0;
