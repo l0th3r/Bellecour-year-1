@@ -4,12 +4,13 @@
 
 #include "useful.h"
 
-int get_grid(int target[9][9], int ac, char **av);
+int get_arg(int target[9][9], int ac, char **av);
 int gridcmp(int tocmp[9][9], int i, int j);
 int is_modifiable(int grid[9][9], int i, int j);
 int check_all(int grid[9][9], int i, int j);
 int check_row(int grid[9][9], int i, int j);
 int check_col(int grid[9][9], int i, int j);
+int check_square(int grid[9][9], int i, int j);
 
 void arrcpy(int arr1[9][9], int arr2[9][9]);
 void print_grid(int target[9][9], int is_loading);
@@ -20,11 +21,11 @@ void backtrack(int grid[9][9], int old[9][9], int *i, int *j);
 int main(int ac, char **av)
 {
 	int grid[9][9];
-	int grid_res = 0;
+	int arg_res = 0;
 
-	grid_res = get_grid(grid, ac, av);
+	arg_res = get_arg(grid, ac, av);
 
-	if(grid_res == 0)
+	if(arg_res == 0)
 		resolve(grid);
 
 	return 0;
@@ -46,7 +47,7 @@ void resolve(int old[9][9])
 	/* copy array */
 	arrcpy(old, grid);
 
-	while(i < 3)
+	while(i < 9)
 	{
 		if (is_modifiable(old, i, j) == 1)
 		{
@@ -54,14 +55,16 @@ void resolve(int old[9][9])
 			while(placable == 0 && grid[i][j] <= 10)
 			{
 				grid[i][j] += 1;
-				printf("tab[%d][%d] = %d\n", i, j, grid[i][j]);
+				/*printf("tab[%d][%d] = %d\n", i, j, grid[i][j]);*/
+
+				print_grid(grid, 1);
 				placable = check_all(grid, i, j);
 				
 			}
+
 			if (grid[i][j] == 10)
-			{
 				backtrack(grid, old, &i, &j);
-			}
+
 			else if(placable == 1)
 				advance(&i, &j);
 		}
@@ -87,15 +90,10 @@ void backtrack(int grid[9][9], int old[9][9], int *i, int *j)
 			*i -= 1;
 		}
 		else
-		{
 			*j -= 1;
-		}
 		
 		if (is_modifiable(old, *i, *j) == 1)
-		{
-			grid[*i][*j] = 0;
 			is_good = 1;
-		}
 	}
 }
 
@@ -104,9 +102,39 @@ int check_all(int grid[9][9], int i, int j)
 	int to_return = 0;
 	int row = check_row(grid, i, j);
 	int col = check_col(grid, i, j);
+	int square = check_square(grid, i, j);
 	
-	if(row == 1 && col == 1)
+	if(row == 1 && col == 1 && square == 1)
 		to_return = 1;
+
+	return to_return;
+}
+
+int check_square(int grid[9][9], int i, int j)
+{
+	int to_return = 1;
+
+	/* get for row and col, the start of the square 0 or 3 or 6 
+	 * exemple: if both = 0 that is the first square */
+	int row_start = i - (i % 3);
+	int col_start = j - (j % 3);
+
+	/* loops variables */
+	int row = 0;
+	int col = 0;
+
+	while(row < 3)
+	{
+		col = 0;
+		while(col < 3)
+		{
+			/* go through the square and exept if the one checked is the current one to compare */
+			if(grid[row + row_start][col + col_start] == grid[i][j] && row + row_start != i && col + col_start != j)
+				to_return = 0;
+			col++;
+		}
+		row++;
+	}
 
 	return to_return;
 }
@@ -231,7 +259,7 @@ void print_grid(int target[9][9], int is_loading)
 		printf("Tring to solve...\n\n");
 }
 
-int get_grid(int target[9][9], int ac, char **av)
+int get_arg(int target[9][9], int ac, char **av)
 {
 	/* to return 0 if good everything good, else 1 */
 	int status = 0;
