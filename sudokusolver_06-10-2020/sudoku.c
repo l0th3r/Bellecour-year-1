@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "useful.h"
 
@@ -13,7 +14,8 @@ int check_col(int grid[9][9], int i, int j);
 void arrcpy(int arr1[9][9], int arr2[9][9]);
 void print_grid(int target[9][9], int is_loading);
 void resolve(int old[9][9]);
-void advance(int *i);
+void advance(int *i, int *j);
+void backtrack(int grid[9][9], int old[9][9], int *i, int *j);
 
 int main(int ac, char **av)
 {
@@ -44,33 +46,56 @@ void resolve(int old[9][9])
 	/* copy array */
 	arrcpy(old, grid);
 
-	while(i < 9)
+	while(i < 3)
 	{
-		j = 0;
-		while(j < 9)
+		if (is_modifiable(old, i, j) == 1)
 		{
-			if (is_modifiable(old, i, j) == 1)
+			placable = 0;
+			while(placable == 0 && grid[i][j] <= 10)
 			{
-				placable = 0;	
-				while(placable == 0 && grid[i][j] < 10)
-				{
-					grid[i][j] += 1;
-					print_grid(grid, 1);
-					placable = check_all(grid, i, j);
-				}
-				if (grid[i][j] == 10)
-				{
-					grid[i][j] = 0;
+				grid[i][j] += 1;
+				printf("tab[%d][%d] = %d\n", i, j, grid[i][j]);
+				placable = check_all(grid, i, j);
 				
-				}
-				else if(placable == 1)
-				{
-					/* advance */
-				}
 			}
-			j++;
+			if (grid[i][j] == 10)
+			{
+				backtrack(grid, old, &i, &j);
+			}
+			else if(placable == 1)
+				advance(&i, &j);
 		}
-		i++;
+		else
+		{
+			advance(&i, &j);
+		}
+	}
+}
+
+void backtrack(int grid[9][9], int old[9][9], int *i, int *j)
+{
+	int is_good = 0;
+
+	/* set this case to 0 */
+	grid[*i][*j] = 0;
+
+	while(is_good == 0)
+	{
+		if(*j == 0)
+		{
+			*j = 8;
+			*i -= 1;
+		}
+		else
+		{
+			*j -= 1;
+		}
+		
+		if (is_modifiable(old, *i, *j) == 1)
+		{
+			grid[*i][*j] = 0;
+			is_good = 1;
+		}
 	}
 }
 
@@ -95,7 +120,7 @@ int check_row(int grid[9][9], int i, int j)
 
 	while(k < 9) 
 	{
-		if (grid[i][k] == grid[i][j] && i != k)
+		if (grid[i][k] == grid[i][j] && j != k)
 			to_return = 0;
 		k++;
 	}
@@ -111,19 +136,22 @@ int check_col(int grid[9][9], int i, int j)
 
 	while(k < 9)
 	{
-		if (grid[k][j] == grid[i][j])
+		if (grid[k][j] == grid[i][j] && i != k)
 			to_return = 0;
 		k++;
 	}
 	return to_return;
 }
 
-void advance(int *i)
+void advance(int *i, int *j)
 {
-	if(*i != 8)
-		*i += + 1;
+	if(*j == 8)
+	{
+		*j = 0;
+		*i += 1;
+	}
 	else
-		*i = 0;
+		*j += 1;
 }
 
 int is_modifiable(int grid[9][9], int i, int j)
