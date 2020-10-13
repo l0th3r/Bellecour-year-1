@@ -611,7 +611,8 @@ void print_no_solve()
 
 void print_usage(char *str)
 {
-	printf("\nUsage: %s [-h see possible flags] <input_file> <outpout_file> [flags]\n\n", str);
+	printf("\nUsage: %s <input_file> <outpout_file> [flags]\n", str);
+	printf("\nOr, to get help you can do: %s -h\n\n", str);
 }
 
 int uf_atoi(char *str)
