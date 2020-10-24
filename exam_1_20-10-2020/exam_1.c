@@ -272,13 +272,16 @@ interactive_story_paragraph* create_interactive_story(char* folder_path, int par
 
 	while(i < paragraph_count)
 	{
-		to_return[i].number = i;
-
 		/* allocate */
 		ctemp = malloc(sizeof(char));
 		ltemp = malloc(sizeof(int));
 
-		to_return[i].link = malloc(sizeof(int));
+		to_return[i].number = i;
+
+		/* while not assigned, = NULL */
+		to_return[i].link = NULL;
+		
+		/*allocate for getting sprintf*/
 		to_return[i].file_path = malloc( (strlen(folder_path) + 20) * sizeof(char));
 
 		/* convert number to str */
@@ -314,6 +317,7 @@ interactive_story_paragraph* create_interactive_story(char* folder_path, int par
 				j++;
 		}
 
+		/* add 0 at the end */
 		ltemp = realloc(ltemp, (l + 1) * sizeof(int));
 		ltemp[l] = 0;
 		l++;
@@ -326,6 +330,7 @@ interactive_story_paragraph* create_interactive_story(char* folder_path, int par
 			m++;
 		}
 
+		/* add 0 at the end */
 		to_return[i].link = realloc(to_return[i].link, (m + 1) * sizeof(int));
 		to_return[i].link[m] = 0;
 
@@ -351,13 +356,12 @@ int main(void)
 
 	interactive_story_paragraph* ip = create_interactive_story("./toile", 46);
 
-	while(i < 2)
+	while(i < 46)
 	{
 		printf("\n{\n\n");
 
 		printf("number = %d\n", ip[i].number);
 		printf("file path = %s\n", ip[i].file_path);
-		printf("\n%s\n", ip[i].text);
 		printf("link = ");
 		j = 0;
 		while(ip[i].link[j] != 0)
