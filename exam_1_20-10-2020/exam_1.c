@@ -12,13 +12,13 @@ int sum_first_integers(int n)
 		to_return = -1;
 	else if(n > 0)
 	{
-		
 		/* Check if the next is overflow */
-		if(n >= INT_MAX - 2)
+		if(n > (INT_MAX - (n - 1)))
 			to_return = -1;
-		else	
+		else
+		{
 			to_return = n + sum_first_integers(n - 1);
-
+		}
 	}
 
 	return to_return;
@@ -60,8 +60,7 @@ int max_int_array(const int* array, size_t size)
 	int to_return = INT_MIN;
 	int i = 0;
 
-	while(i < size)
-	{
+	while(i < size)	{
 		if(array[i] > to_return)
 			to_return = array[i];
 		i++;
@@ -92,9 +91,17 @@ void min_max_int_array(const int* array, size_t size, int *min, int *max)
 /* EX 04 */
 void heap_10M()
 {
+	int err = 0;
 	void *p = malloc(10000);
 
-	printf("Allocated !\n");
+	if(!p)
+		err = 1;
+
+	if(err == 1)
+		printf("Failed to allocate.\n");
+	else
+		printf("Allocated !\n");
+
 	free(p);
 }
 
@@ -110,8 +117,7 @@ dynamic_int_array* create_dynamic_int_array(size_t size)
 
 	while(i < size)
 	{
-		/* TO 0 */
-		arr[i] = 1;
+		arr[i] = 0;
 		i++;
 	}
 
@@ -140,7 +146,7 @@ int dynamic_int_array_get(const dynamic_int_array* darray, size_t index)
 
 size_t dynamic_int_array_add(dynamic_int_array *darray, int value)
 {
-	(*darray).array = realloc((*darray).array, (*darray).size + sizeof(int));
+	(*darray).array = realloc((*darray).array, (*darray).size * sizeof(int));
 	(*darray).size += 1;
 	(*darray).array[(*darray).size - 1] = value;
 
@@ -193,7 +199,6 @@ int dynamic_int_array_remove(dynamic_int_array* darray, size_t index)
 }
 
 /* EX 08 */
-
 dynamic_int_array* sub_dynamic_int_array(const dynamic_int_array* darray, size_t start, size_t end)
 {
 	int i = start; 
@@ -222,7 +227,6 @@ dynamic_int_array* copy_dynamic_int_array(const dynamic_int_array* darray)
 }
 
 /* EX 09 */
-
 char* read_file(const char* path)
 {
 	FILE * fp;
@@ -239,28 +243,61 @@ char* read_file(const char* path)
 	{
 		do
 		{
-			to_return = realloc(to_return, len++ * sizeof(char));
+			to_return = realloc(to_return, ++len * sizeof(char));
 			temp = fgetc(fp);
 			to_return[i] = temp;
 			i++;
 		}
 		while(temp != EOF);
-		to_return = realloc(to_return, len++ * sizeof(char));
+		to_return = realloc(to_return, ++len * sizeof(char));
 		to_return[i] = '\0';
+	}
+	else
+	{
+		to_return = realloc(to_return, 2 * sizeof(char));
+		to_return[0] = 3;
+		to_return[1] = '\0';	
 	}
 
 	return to_return;
 }
 
 /* EX 10 */
-typedef struct {int number; char * file_path; char * text; int * link;} interactive_story_paragraph;
+typedef struct {int number; char * file_path; char * text; int * links;} interactive_story_chapter;
 
-interactive_story_paragraph* create_interactive_story(char* folder_path, int paragraph_count)
+interactive_story_chapter * create_interactive_story(char* folder_path, int chapter_count)
 {
-	interactive_story_paragraph* to_return = malloc(paragraph_count * sizeof(interactive_story_paragraph));
+	interactive_story_chapter* to_return = malloc(chapter_count * sizeof(interactive_story_chapter));
 
 	/* loops variables */
 	int i = 0;
+
+	while(i < chapter_count)
+	{
+		to_return[i].number = i;
+
+		/* while not assigned, = NULL */
+		to_return[i].links = NULL;
+		
+		/*allocate for getting sprintf*/
+		to_return[i].file_path = malloc( (strlen(folder_path) + 20) * sizeof(char));
+
+		/* convert number to str */
+		sprintf(to_return[i].file_path, "%s/%d%c",folder_path, i, '\0');
+
+		/* text is empty so NULL pointer*/
+		to_return[i].text = NULL;
+
+		i++;
+	}
+
+	return to_return;
+}
+
+/* EX 11 */
+void interactive_story_chapter_load(interactive_story_chapter* chapter)
+{
+	/* loops variables */
 	int j = 0;
 	int k = 0;
 	int l = 0;
@@ -269,38 +306,33 @@ interactive_story_paragraph* create_interactive_story(char* folder_path, int par
 	/* declare temporary pointers */
 	char *ctemp;
 	int *ltemp;
+	char *ttemp;
 
-	while(i < paragraph_count)
+	printf("\nLoading file %s...", chapter->file_path);
+
+	/* test if the file exist */
+	ttemp = read_file(chapter->file_path);
+
+	/* check if the text isn't alredy loaded and that the target file exist */
+	if(ttemp[0] != 3 && chapter->text == NULL)
 	{
+		/* get text */
+		chapter->text = read_file(chapter->file_path);
+
 		/* allocate */
 		ctemp = malloc(sizeof(char));
 		ltemp = malloc(sizeof(int));
 
-		to_return[i].number = i;
-
-		/* while not assigned, = NULL */
-		to_return[i].link = NULL;
-		
-		/*allocate for getting sprintf*/
-		to_return[i].file_path = malloc( (strlen(folder_path) + 20) * sizeof(char));
-
-		/* convert number to str */
-		sprintf(to_return[i].file_path, "%s/%d%c",folder_path, i, '\0');
-
-		to_return[i].text = read_file(to_return[i].file_path);
-
-		j = 0;
-		l = 0;
-		while(to_return[i].text[j] != '\0')
+		while(chapter->text[j] != '\0')
 		{
-			if(to_return[i].text[j] == '*')
+			if(chapter->text[j] == '*')
 			{
 				k = 0;
 				j++;
-				while(to_return[i].text[j] != '*')
+				while(chapter->text[j] != '*')
 				{
 					ctemp = realloc(ctemp, (k + 1) * sizeof(char));
-					ctemp[k] = to_return[i].text[j];
+					ctemp[k] = chapter->text[j];
 					k++;
 					j++;
 				}
@@ -325,57 +357,124 @@ interactive_story_paragraph* create_interactive_story(char* folder_path, int par
 		m = 0;
 		while(ltemp[m] != 0)
 		{
-			to_return[i].link = realloc(to_return[i].link, (m + 1) * sizeof(int));
-			to_return[i].link[m] = ltemp[m];
+			chapter->links = realloc(chapter->links, (m + 1) * sizeof(int));
+			chapter->links[m] = ltemp[m];
 			m++;
 		}
 
 		/* add 0 at the end */
-		to_return[i].link = realloc(to_return[i].link, (m + 1) * sizeof(int));
-		to_return[i].link[m] = 0;
+		chapter->links = realloc(chapter->links, (m + 1) * sizeof(int));
+		chapter->links[m] = 0;
 
 		free(ctemp);
 		free(ltemp);
+
+		printf("\nThe file is loaded.\n");
+	}
+	else
+		printf("\nWARNING: the file %s can't be loaded.\n", chapter->file_path);
+
+	free(ttemp);
+}
+
+void interactive_story_load_all(interactive_story_chapter* story, int chapter_count)
+{
+	int i = 0;
+
+	while(i < chapter_count)
+	{
+		interactive_story_chapter_load(&story[i]);
 		i++;
+	}
+}
+
+/* EX 12 */
+void interactive_story_chapter_print(const interactive_story_chapter* chapter)
+{
+	if(chapter->text == NULL)
+		printf("\nERROR: text is not loaded in this chapter.\n");
+	else
+		printf("\n%s\n", chapter->text);
+}
+
+void interactive_story_chapter_load_print(interactive_story_chapter * chapter)
+{
+	if(chapter->text == NULL)
+	{
+		interactive_story_chapter_load(chapter);
+		interactive_story_chapter_print(chapter);
+	}
+}
+
+/* EX 13 */
+int interactive_story_chapter_scan_player_choice(const interactive_story_chapter* chapter)
+{
+	/* variable to return */
+	int to_return = 0;
+	
+	/* conditions variables */
+	int is_good = 0;
+
+	/* temporary variables */
+	int temp;
+
+	/* loops variables */
+	int i = 0;
+
+	/* conditions to ask the player */
+	if(chapter->links == NULL)
+		printf("\nERROR: This chapter is not loaded. Game Aborted.\n");
+	else if(chapter->links[0] == 0)
+		printf("\nThanks for playing, the story is over !\n");
+	else
+	{
+		while(is_good == 0)
+		{
+			/* ask the player */
+			printf("\nWhere to go next ? (number): ");
+			scanf("%d", &temp);
+			printf("\nYou choose %d", temp);
+
+			i = 0;
+			while(chapter->links[i] != 0)
+			{
+				if(chapter->links[i] == temp)
+				{
+					to_return = temp;
+					is_good = 1;
+				}
+				i++;
+			}
+			if(is_good == 0)
+				printf("\n%d is not a valid option.\n\n", temp);
+		}
 	}
 
 	return to_return;
 }
 
+/* EX 14 */
+void interactive_story_chapter_unload(interactive_story_chapter* chapter)
+{
+	free(chapter->file_path);
+	chapter->file_path = NULL;
 
+	free(chapter->links);
+	chapter->links = NULL;
 
+	free(chapter->text);
+	chapter->text = NULL;
+}
 
-
-
-
-/* REMOVE */
-int main(void)
+void destroy_interactive_story(interactive_story_chapter* story, int chapters_count)
 {
 	int i = 0;
-	int j = 0;
 
-	interactive_story_paragraph* ip = create_interactive_story("./toile", 46);
-
-	while(i < 46)
+	while(i < chapters_count)
 	{
-		printf("\n{\n\n");
-
-		printf("number = %d\n", ip[i].number);
-		printf("file path = %s\n", ip[i].file_path);
-		printf("link = ");
-		j = 0;
-		while(ip[i].link[j] != 0)
-		{
-			printf("%d, ", ip[i].link[j]);
-			j++;		
-		}
-
-		printf("\n\n}\n");
-		
+		interactive_story_chapter_unload(&story[i]);
 		i++;
 	}
-	
-	return 0;
+	free(story);
 }
-/* REMOVE */
 
