@@ -12,13 +12,10 @@ int sum_first_integers(int n)
 		to_return = -1;
 	else if(n > 0)
 	{
-		/* Check if the next is overflow */
-		if(n > (INT_MAX - (n - 1)))
+		to_return = n + sum_first_integers(n - 1);
+		
+		if(to_return < n)
 			to_return = -1;
-		else
-		{
-			to_return = n + sum_first_integers(n - 1);
-		}
 	}
 
 	return to_return;
@@ -208,7 +205,7 @@ dynamic_int_array* sub_dynamic_int_array(const dynamic_int_array* darray, size_t
 	if(end > darray->size)
 		end = darray->size + 1;
 
-	cpy = create_dynamic_int_array(end - start - 1);
+	cpy = create_dynamic_int_array(end - start);
 
 	while(j < cpy->size || i < end)
 	{
@@ -280,7 +277,7 @@ interactive_story_chapter * create_interactive_story(char* folder_path, int chap
 		to_return[i].links = NULL;
 		
 		/*allocate for getting sprintf*/
-		to_return[i].file_path = malloc( (strlen(folder_path) + 20) * sizeof(char));
+		to_return[i].file_path = malloc((strlen(folder_path) + 20) * sizeof(char));
 
 		/* convert number to str */
 		sprintf(to_return[i].file_path, "%s/%d%c",folder_path, i, '\0');
@@ -372,7 +369,7 @@ void interactive_story_chapter_load(interactive_story_chapter* chapter)
 		printf("\nThe file is loaded.\n");
 	}
 	else
-		printf("\nWARNING: the file %s can't be loaded.\n", chapter->file_path);
+		printf("\nWARNING: the file %s can't be loaded or the file is already loaded.\n", chapter->file_path);
 
 	free(ttemp);
 }
@@ -456,9 +453,6 @@ int interactive_story_chapter_scan_player_choice(const interactive_story_chapter
 /* EX 14 */
 void interactive_story_chapter_unload(interactive_story_chapter* chapter)
 {
-	free(chapter->file_path);
-	chapter->file_path = NULL;
-
 	free(chapter->links);
 	chapter->links = NULL;
 
@@ -473,6 +467,10 @@ void destroy_interactive_story(interactive_story_chapter* story, int chapters_co
 	while(i < chapters_count)
 	{
 		interactive_story_chapter_unload(&story[i]);
+
+		free(story[i].file_path);
+		(story[i]).file_path = NULL;
+
 		i++;
 	}
 	free(story);
