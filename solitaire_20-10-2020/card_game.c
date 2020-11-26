@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "ui.h"
+
 #define COLOR_RED "\x1b[1;31m"
 #define COLOR_RESET "\x1b[0m"
 
@@ -31,26 +33,17 @@ struct Card
 /* make a deck of 52 cards. */
 struct Card deck[52];
 
+/* creation of the board */
+struct Card board[10][13];
+
 int get_random(int end);
+
+char* print_card(int card_id);
 
 void draw_card(struct Card *target, int *target_len, int is_hidden);
 void face_up(struct Card *target, int *target_len);
 void make_deck();
 void wait(int time);
-void print_card(int card_id);
-
-
-void face_up(struct Card *target, int *target_len)
-{
-	int i = 0;
-
-	while (i < *target_len)
-	{
-		target[i].hidden = 0;
-		deck[target[i].id].hidden = 0;
-		i++;
-	}
-}
 
 /* get the targetted hand, and the number of cards the hand have
  * the function add another card to the targetted hand */
@@ -63,7 +56,8 @@ void draw_card(struct Card *target, int *target_len, int is_hidden)
 	{
 		random_num = get_random(51);
 
-		if (deck[random_num].used == 0) drawn_card = deck[random_num].id;
+		if (deck[random_num].used == 0)
+			drawn_card = deck[random_num].id;
 	}
 
 	target[*target_len].id = deck[random_num].id;
@@ -78,7 +72,7 @@ void draw_card(struct Card *target, int *target_len, int is_hidden)
 	*target_len += 1;
 }
 
-void print_card(int card_id)
+char* print_card(int card_id)
 {
 	int id = deck[card_id].id;
 	int val = deck[card_id].value;
@@ -87,26 +81,25 @@ void print_card(int card_id)
 	int is_used = deck[card_id].used;
 	int hidden = deck[card_id].hidden;
 
-	char suit_to_display[4];
-	char str_val[3];
+	char* suit_to_display =  malloc(sizeof(char) * 4);
+	char* str_val =  malloc(sizeof(char) * 3);
+	char* str = malloc(sizeof(char) * 12);
 
 	/* set suit to display */
 	switch(suit)
 	{
 		case 0:
-			strcpy(suit_to_display, "♣");
+			strcpy(suit_to_display, "C");
 			break;
 		case 1:
-			strcpy(suit_to_display, "♦");
+			strcpy(suit_to_display, "D");
 			break;
 		case 2:
-			strcpy(suit_to_display, "♥");
+			strcpy(suit_to_display, "H");
 			break;
 		case 3:
-			strcpy(suit_to_display, "♠");
+			strcpy(suit_to_display, "S");
 			break;
-		default:
-			strcpy(suit_to_display, "♠");
 	}
 
 	/* set card to display */
@@ -126,19 +119,37 @@ void print_card(int card_id)
 			break;
 		default:
 			sprintf(str_val, "%d", val);
-	}	
-	
-	
-	
-	printf("| ");
-	if (hidden == 1)
-		printf("hidden");
-	else if (suit == 1 || suit == 2)
-		printf(COLOR_RED "%s %s" COLOR_RESET, str_val, suit_to_display);
-	else
-		printf("%s %s", str_val, suit_to_display);
+	}
 
-	printf(" | ");
+	if(deck[card_id].hidden == 1)
+		sprintf(str, "|  X  |");
+	else
+		sprintf(str, "| %s %s |", str_val, suit_to_display);
+
+	/* PRINT LINE */
+	return str;
+	/* PRINT LINE */
+
+	free(suit_to_display);
+	free(str_val);
+	free(str);
+}
+
+void make_board()
+{
+	int i = 0;
+	int j = 0;
+	int top = 8;
+
+	while(i < 10)
+	{
+		j = 0;
+		while(j < 5)
+		{
+			draw_card(board[i], &j, 0);
+		}
+		i++;
+	}
 }
 
 
@@ -177,7 +188,6 @@ int get_random(int end)
 {
 	int num;
 
-	srand(time(0));
 	num = rand() % end;
 	return num;
 }
@@ -187,4 +197,16 @@ void wait(int time)
 {
 	fflush(stdout);
 	sleep(time);
+}
+
+void face_up(struct Card *target, int *target_len)
+{
+	int i = 0;
+
+	while (i < *target_len)
+	{
+		target[i].hidden = 0;
+		deck[target[i].id].hidden = 0;
+		i++;
+	}
 }
