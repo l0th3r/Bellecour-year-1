@@ -16,7 +16,7 @@ int main()
 
   printf("\033[?1003h\n"); // Makes the terminal report mouse movement events
 
-  for (;;) { 
+  for (;;) {
     int c = wgetch(stdscr);
  
     // Exit the program on new line fed
@@ -31,8 +31,7 @@ int main()
     else if (c == KEY_MOUSE) {
       MEVENT event;
       if (getmouse(&event) == OK) {
-        snprintf(buffer, max_size, "Mouse at row=%d, column=%d bstate=0x%08lx",
-                 event.y, event.x, event.bstate);
+        snprintf(buffer, max_size, "Mouse at row=%d, column=%d bstate=0x%08lx", event.y, event.x, event.bstate);
       }
       else {
         snprintf(buffer, max_size, "Got bad mouse event.");
