@@ -1,6 +1,8 @@
+#define _DEFAULT_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 int uf_atoi(char *str);
 int uf_ctoi(char c);
@@ -38,6 +40,8 @@ int f_very = 0;
 
 /* used for the loading animation */
 int count = 0;
+/* is there a solution */
+int is_solvable = 1;
 
 int main(int ac, char **av)
 {
@@ -45,7 +49,6 @@ int main(int ac, char **av)
 	int output[9][9];
 
 	int arg_res = 0;
-	int out_res = 0;
 
 	arg_res = get_arg(input, ac, av);
 
@@ -54,7 +57,7 @@ int main(int ac, char **av)
 		resolve(input, output);
 
 		/* extract the result */
-		out_res = get_out(output, av);
+		get_out(output, av);
 
 		/* print one last time to show the result */
 		print_grid(output, 0);
@@ -68,18 +71,18 @@ void resolve(int old[9][9], int grid[9][9])
 	/* loops vriables */
 	int i = 0;
 	int j = 0;
-	int k = 1;
 
 	/* conditions variables */
 	int placable = 0;
 	int stop = 0;
+	int is_exit = 0;
 
 	/* copy array */
 	arrcpy(old, grid);
 
 	print_grid(grid, 1);
 	
-	while(i < 9)
+	while(i < 9 && is_exit == 0)
 	{
 		if (is_modifiable(old, i, j) == 1 && stop == 0)
 		{
@@ -92,7 +95,7 @@ void resolve(int old[9][9], int grid[9][9])
 				{
 					fflush(stdout);
 					if(f_very == 1)
-						usleep(50000);
+						usleep(100000);
 
 					count++;
 					print_grid(grid, 1);
@@ -115,7 +118,8 @@ void resolve(int old[9][9], int grid[9][9])
 				if(i == 0 && j == 0)
 				{
 					stop = 1;
-					print_no_solve();
+					is_exit = 1;
+					is_solvable = 0;
 				}
 				else
 					backtrack(grid, old, &i, &j);
@@ -123,7 +127,7 @@ void resolve(int old[9][9], int grid[9][9])
 			else if(placable == 1)
 				advance(&i, &j);
 		}
-		else
+		else if(stop == 0)
 			advance(&i, &j);
 	}
 }
@@ -315,7 +319,10 @@ void print_grid(int target[9][9], int is_loading)
 
 	if(is_loading == 0)
 	{
-		printf("This is the solution.\n\n");
+		if(is_solvable == 1)
+			printf("This is the solution.\n\n");
+		else
+			print_no_solve();
 		printf("Use the flag [-h] to see all options.\n\n");
 	}
 }
@@ -351,21 +358,25 @@ int get_out(int target[9][9], char **av)
 	int i = 0;
 	int j = 0;
 
-	out = fopen(out_name, "w");
-
-	while(i < 9)
+	if(is_solvable == 1)
 	{
-		j = 0;
-		while(j < 9)
+		out = fopen(out_name, "w");
+		while(i < 9)
 		{
-			fprintf(out, "%d", target[i][j]);
-			j++;
+			j = 0;
+			while(j < 9)
+			{
+				fprintf(out, "%d", target[i][j]);
+				j++;
+			}
+			fprintf(out, "\n");
+			i++;
 		}
-		fprintf(out, "\n");
-		i++;
+		fclose(out);
 	}
-
-	fclose(out);
+	else
+		print_no_solve();
+	
 
 	return status;
 }
@@ -383,10 +394,7 @@ int get_arg(int target[9][9], int ac, char **av)
 	int i = 0;
 	int j = 0;
 	int arg = 0;
-	int txt = 0;
 
-	/* temporary */
-	int f_fast = 0;
 	char temp;
 	
 	if(ac == 1)
@@ -606,7 +614,7 @@ void print_help(char *str)
 
 void print_no_solve()
 {
-	printf("\n\nThis grid cant be solved.\n\n");
+	printf("\n\nThis grid can't be solved.\n\n");
 }
 
 void print_usage(char *str)
