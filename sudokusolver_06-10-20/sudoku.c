@@ -543,7 +543,7 @@ int get_arg(int target[9][9], int ac, char **av)
 		if(status == 1)
 			printf("\nYou already have a solved version of '%s' in '%s'.\n\n", av[1], av[2]);
 	}
-
+	fclose(out);
 	return status;
 }
 
