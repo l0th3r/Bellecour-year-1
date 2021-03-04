@@ -47,7 +47,6 @@ int main(int ac, char **av)
 	int output[9][9];
 
 	int arg_res = 0;
-	int out_res = 0;
 	int status = 0;
 
 	arg_res = get_arg(input, ac, av);
@@ -57,7 +56,7 @@ int main(int ac, char **av)
 		resolve(input, output, &status);
 
 		/* extract the result */
-		out_res = get_out(output, av);
+		get_out(output, av);
 
 		/* print one last time to show the result */
 		if(status == 0)
@@ -73,7 +72,6 @@ void resolve(int old[9][9], int grid[9][9], int* status)
 	/* loops vriables */
 	int i = 0;
 	int j = 0;
-	int k = 1;
 
 	/* conditions variables */
 	int placable = 0;
@@ -386,10 +384,8 @@ int get_arg(int target[9][9], int ac, char **av)
 	int i = 0;
 	int j = 0;
 	int arg = 0;
-	int txt = 0;
 
 	/* temporary */
-	int f_fast = 0;
 	char temp;
 	
 	if(ac == 1)
@@ -552,10 +548,10 @@ int check_in_out(int in[9][9], int out[9][9])
 	int j = 0;
 
 	/* first we check if the out array have the same start grid as in array */
-	while(i < 9)
+	while(i < 9 && to_return == 1)
 	{
 		j = 0;
-		while(j < 9)
+		while(j < 9 && to_return == 1)
 		{
 			if(in[i][j] != 0)
 			{
