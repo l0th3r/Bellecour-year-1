@@ -34,7 +34,7 @@ FILE *out;
 char *out_name;
 
 /* flags variables */
-int f_slow = 1;
+int f_slow = 0;
 int f_debug = 0;
 int f_very = 0;
 
@@ -340,7 +340,7 @@ void print_loading()
 			temp = '-';
 		break;
 		case 3:
-			temp = 92;
+			temp = '\\';
 		break;
 	}
 	printf("Loading %c\n\n", temp);
@@ -408,7 +408,7 @@ int get_arg(int target[9][9], int ac, char **av)
 		printf("\n	-slow = display the grid to see the resolution.");
 		printf("\n	-fast = dont display the grid, just output the file.");
 		printf("\n	-veryslow = refresh time is slower so you can read better (pretty nice with -debug).");
-		printf("\n	default = -slow.\n\n");
+		printf("\n	default = -fast.\n\n");
 		printf("\n-debug or -nodebug:\n");
 		printf("\n	-debug = display some debugs informations (-slow is needed risk of glitches).");
 		printf("\n	-nodebug = dont display debugs informations.");
@@ -477,6 +477,7 @@ int get_arg(int target[9][9], int ac, char **av)
 				}
 				if(strcmp(av[arg], "-veryslow") == 0)
 				{
+					f_slow = 1;
 					f_very = 1;
 				}
 				arg++;
@@ -528,6 +529,7 @@ int get_arg(int target[9][9], int ac, char **av)
 			}
 			i++;
 		}
+
 		/* return 1 if the  */
 		status = check_in_out(target, temp_arr);
 		if(status == 1)
@@ -556,11 +558,13 @@ int check_in_out(int in[9][9], int out[9][9])
 			if(in[i][j] != 0)
 			{
 				if(in[i][j] != out[i][j])
-					to_return = 0;
+					return 0;
 			}
+			else if(check_all(out, i, j) == 0)
+				return 0;
 
 			if(out[i][j] == 0)
-				to_return = 0;
+				return 0;
 			j++;
 		}
 		i++;
