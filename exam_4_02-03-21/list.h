@@ -1,6 +1,10 @@
 #ifndef LIST_LIB
 #define LIST_LIB
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
 /* actual node of the chain */
 typedef struct list_node list_node;
 struct list_node

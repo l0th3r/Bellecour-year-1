@@ -101,14 +101,14 @@ void* list_get(list* _list, size_t _index)
 
 
 /* 06 */
-bool list_set(list* _list, size_t _index, void* data)
+bool list_set(list* _list, size_t _index, void* _data)
 {
     bool to_return = false;
     list_node* temp = list_get_node(_list, _index);
 
     if(temp)
     {
-        temp->data = data;
+        temp->data = _data;
         to_return = !to_return;
     }
 
