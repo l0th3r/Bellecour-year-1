@@ -118,7 +118,8 @@
     size_t list_##TYPE##_add(list_##TYPE * _list, TYPE _value)\
     {\
         TYPE* temp = malloc(sizeof(TYPE));\
-        *temp = _value;\
+        if(temp) *temp = _value;\
+        else return _list->_list->count;\
         return list_add(_list->_list, temp);\
     }\
 
@@ -144,7 +145,8 @@
     bool list_##TYPE##_insert (list_##TYPE * _list, size_t _index, TYPE _value)\
     {\
         TYPE* temp = malloc(sizeof(TYPE));\
-        *temp = _value;\
+        if(temp) *temp = _value;\
+        else return false;\
         return list_insert(_list->_list, _index, temp);\
     }\
 
@@ -195,6 +197,6 @@
 #endif
 
 /* 8
-    I've added, a custom destroy macro, LIST_METHOD_DEFN_VAL_DESTROY(TYPE) for LIST_VAL_DECLARE(TYPE) and LIST_VAL_DEFINE(TYPE).
-    This macro allow to clean memory leaks when destroying the list.
+    To fix it, we need a custom destroy macro, LIST_METHOD_DEFN_VAL_DESTROY(TYPE) for LIST_VAL_DECLARE(TYPE) and LIST_VAL_DEFINE(TYPE).
+    This macro allow to clean all allocated memory when destroying the list, witch prevent leaks.
 */

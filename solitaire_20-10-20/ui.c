@@ -1,90 +1,68 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <unistd.h>
-#include <string.h>
-#include <ncurses.h>
-
-#include "card_game.h"
-
-struct Card board[10][15];
+#include "solitaire.h"
 
 WINDOW * win_top;
 WINDOW * win_pla;
-
-void ui_init();
-void ui_refresh();
-void ui_close();
-void ui_print_board();
 
 void ui_print_board()
 {
     int i = 0;
     int j = 0;
-    int k = 5;
-    int is_good = 0;
-    int selected_c = 1;
-    int selected_l = 1;
-    int choice;
+    int k = 4;
+    int selected_c;
+    int selected_l;
     char* temp;
+
+    /* get board and player */
+    Board_t* board = init_board();
+    Player_t* player = init_player();
 
     start_color();
     keypad(win_pla, true);
+    curs_set(0);
     init_pair(1, COLOR_RED, COLOR_BLACK);
 
-    while(is_good == 0)
+    selected_l = player->selected_l;
+    selected_c = player->selected_c;
+
+    /* print side slots */
+    i = 0;
+    k += (9 * 5); /* jump 3 cards slots */
+    while(i < board->side_s)
     {
-        i = 0;
-        k = 5;
-        while(i < 10)
-        {
-            j = 0;
-            while(j < 13)
-            {
-                if(selected_c == i && selected_l == j)
-                    wattron(win_pla, A_REVERSE);
-                
-                temp = print_card(board[i][j].id);
-                if(board[i][j].suit > 0 && board[i][j].suit < 3)
-                    wattron(win_pla, COLOR_PAIR(1));
-
-                mvwprintw(win_pla, j + 2, k, "%s", temp);
-                wattroff(win_pla, COLOR_PAIR(1));
-                wattroff(win_pla, A_REVERSE);
-                j++;
-            }
-            k += 9;
-            i++;
-        }
-
-        wrefresh(win_pla);
-
-        choice = wgetch(win_pla);
-
-        switch(choice)
-		{
-			case 259:
-                if(selected_l > 0)
-                    selected_l--;
-				break;
-			case 258:
-                if(selected_l < 12)
-                    selected_l++;
-				break;
-            case 260:
-                if(selected_c > 0)
-                    selected_c--;
-				break;
-            case 261:
-                if(selected_c < 9)
-                    selected_c++;
-				break;
-            default:
-				break;
-		}
-		if(choice == 10)
-			is_good = 1;
+        temp = get_card(board->side[i]);
+        mvwprintw(win_pla, j + 2, k, "%s", temp);
+        i++;
+        k+=9;
     }
+
+    mvwprintw(win_pla, j + 2, 4, "Selected card: %s", get_card(player->select));
+
+    /* print board slots */
+    i = 0;
+    k = 4;
+    while(i < board->col_s)
+    {
+        j = 0;
+        while(j < board->row_s)
+        {
+            if(selected_c == i && selected_l == j)
+                wattron(win_pla, A_REVERSE);
+            
+            temp = get_card(board->pile[i][j]);
+                
+            if(board->pile[i][j].suit > 0 && board->pile[i][j].suit < 3)
+                wattron(win_pla, COLOR_PAIR(1));
+
+            mvwprintw(win_pla, j + 4, k, "%s", temp);
+
+            wattroff(win_pla, COLOR_PAIR(1));
+            wattroff(win_pla, A_REVERSE);
+            j++;
+        }
+        k += 9;
+        i++;
+    }
+    wrefresh(win_pla);
     free(temp);
 }
 
@@ -128,6 +106,12 @@ void ui_init()
     ui_refresh();
 }
 
+void debug(char* str)
+{
+    mvwprintw(win_top, 3, 50, "*** DEBUG = %s ***", str);
+    wrefresh(win_top);
+}
+
 void ui_refresh()
 {
     int height;
@@ -168,6 +152,6 @@ void ui_refresh()
 
 void ui_close()
 {
-    /* deallocates memory and ends ncurses  */
+    /* deallocates memory and end ncurses  */
 	endwin();
 }
